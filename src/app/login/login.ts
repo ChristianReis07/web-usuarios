@@ -1,15 +1,17 @@
+import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from "@angular/router";
+import { RouterLink, Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    RouterLink
-],
+    RouterLink,
+    CommonModule
+  ],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -17,6 +19,12 @@ export class Login {
 
   //Inicializar o HttpClient
   http = inject(HttpClient);
+
+  // Router
+  router = inject(Router);
+
+  //Mensagem
+  msgErro = signal<string>('');
 
   //Criando o formulário
   formLogin = new FormGroup({
@@ -29,11 +37,12 @@ export class Login {
     //Fazendo uma requisição HTTP POST para a API
     this.http.post('http://localhost:3000/api/auth/login', this.formLogin.value)
       .subscribe({ //capturando o retorno da API
-        next: (data) => { //resposta de sucesso da API
-          console.log(data);
+        next: (data) => {
+          sessionStorage.setItem('usuario', JSON.stringify(data));
+          this.router.navigateByUrl('/pages/dashboard')
         },
         error: (e) => { //resposta de erro da API
-          console.log(e.error);
+          this.msgErro.set(e.error.erro);
         }
       })
   }
